@@ -1,0 +1,75 @@
+{% extends 'index.html' %}
+{% block content %}
+{% load static %}
+
+<div class="">
+    <div>
+        <div class="row">
+
+            <div class="col-lg-3 col-sm-3 col-lg-offset-4 col-sm-offset-4">
+                <div align="center">
+                    <h3 style="color:rgb(34, 32, 32);font-family: inherit;">User Form</h3><br>
+                </div>
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags}}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                <form action="" method="POST">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-user" style="color:balck;"></span>
+                            </div>
+                            {{ form.name}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-envelope" style="color:black;"></span>
+                            </div>
+                            
+                            {{ form.email }}
+                            </div>
+                            {% if form.email.help_text %}
+                            <small style="display:none">{{ form.email.help_text }}</small>
+                            {% endif %}
+                            {% for error in form.email.errors %}
+                            <p style="color: red">{{ error }}</p>
+                            {% endfor %}
+                        
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-earphone" style="color:black;"></span>
+                            </div>
+                            {{ form.mobileno }}
+                        </div>
+                        {% if form.mobileno.help_text %}
+                        <small style="display:none">{{ form.email.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.mobileno.errors %}
+                        <p style="color: red">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar" style="color:black;"></span>
+                            </div>
+                            {{ form.dob }}
+                        </div>
+                    </div>
+                <button class="btn btn-primary btn-block" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
