@@ -20,8 +20,9 @@ def index(request):
                 return redirect(index)      
             except Userform.DoesNotExist:
                 p=int(dob[:4])
-                q=p-2019
-                if q>=18:
+                q=2019-p
+                print(q)
+                if q>=18 and q<=40:
                     userform = Userform.objects.create(email=email, name=name, dob=dob, mobileno=mobileno)
                     to_email = form.cleaned_data.get('email')
                     mail_subject = ''
@@ -32,8 +33,8 @@ def index(request):
                     messages.success(request, f'your form has been created')
                     return redirect(index)
                 else:
-                    messages.success(request, f'Age should be greater than 18 year..')
-                    return redirect(index)
+                    messages.success(request, f'Age should be greater than 18 year and less than 40 year.')
+                    return render(request, 'home.html', {'form': form})
     else:
         form = Userformdd()    
     return render(request,'home.html',{'form':form})
