@@ -1,0 +1,137 @@
+version: '3'
+
+volumes:
+  template_share: {}
+  downloads:
+
+services:
+  postgres:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_PASSWORD=postgres
+
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile-dev
+    depends_on:
+      - postgres
+      - redis
+      - ocr_microservice
+    volumes:
+      - .:/app
+      - template_share:/app/templates/build
+      - downloads:/app/downloads
+    command: django-dev
+    env_file: .env
+    environment:
+      - DJANGO_DEBUG=true
+      - TEMPLATES_DIR=templates/build
+    ports:
+      - '40000:8000'
+      - '3000:3000'
+    restart: on-failure
+
+  node:
+    build:
+      context: .
+      dockerfile: ./compose/node/Dockerfile-dev
+    volumes:
+      - ./templates:/templates
+      - template_share:/templates/build
+      - /templates/node_modules
+    command: npm run serve
+    ports:
+      - '40001:8080'
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/nginx/Dockerfile-dev
+    volumes:
+      - template_share:/templates/build
+    depends_on:
+      - django
+      - node
+    ports:
+      - '8080:80'
+
+  remote-storage:
+    build:
+      context: .
+      dockerfile: ./compose/remote-storage/Dockerfile
+    environment:
+      - REMOTE_SFTP_USER=${REMOTE_SFTP_USER:-root}
+      - REMOTE_SFTP_PASSWORD=${REMOTE_SFTP_PASSWORD:-letmeout}
+    ports:
+      - '8223:9292'
+
+  redis:
+    image: redis:6.0
+
+  celeryworker_selenium:
+    <<: *django
+    image: local_celeryworker
+    container_name: celeryworker_selenium
+    depends_on:
+      - redis
+      - postgres
+      - selenium
+      - ocr_microservice
+    ports: []
+    command: celeryworker-selenium
+
+  celeryworker_slow_queue:
+    <<: *django
+    image: local_celeryworker
+    container_name: celeryworker_slow_queue
+    depends_on:
+      - redis
+      - postgres
+      - selenium
+      - ocr_microservice
+    ports: []
+    command: celeryworker-slow-queue
+
+  celeryworker_fast_queue:
+    <<: *django
+    image: local_celeryworker
+    container_name: celeryworker_fast_queue
+    depends_on:
+      - redis
+      - postgres
+      - selenium
+      - ocr_microservice
+    ports: []
+    command: celeryworker-fast-queue
+
+  celerybeat:
+    <<: *django
+    image: local_celerybeat
+    container_name: celerybeat
+    depends_on:
+      - redis
+      - postgres
+      - selenium
+      - ocr_microservice
+    ports: []
+    command: celerybeat
+
+  selenium:
+    build:
+      context: .
+      dockerfile: ./compose/selenium/Dockerfile
+    shm_size: '1G'
+    volumes:
+      - downloads:/downloads
+    # debugging port
+    #ports:
+    #- '7900:7900'
+
+  ocr_microservice:
+    build:
+      context: .
+      dockerfile: ./ocr_microservice/Dockerfile
+    command: python3 ./server.py
+    volumes:
+      - ./ocr_microservice:/app
