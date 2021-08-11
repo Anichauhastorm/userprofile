@@ -127,11 +127,3 @@ services:
     # debugging port
     #ports:
     #- '7900:7900'
-
-  ocr_microservice:
-    build:
-      context: .
-      dockerfile: ./ocr_microservice/Dockerfile
-    command: python3 ./server.py
-    volumes:
-      - ./ocr_microservice:/app
